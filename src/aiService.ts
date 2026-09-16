@@ -6,7 +6,12 @@ export function setAiService(service: ExtensionAIService | undefined) {
   aiService = service;
 }
 
-export async function sendSessionPrompt(options: { prompt: string; sessionName?: string }): Promise<boolean> {
+export async function sendSessionPrompt(options: {
+  prompt: string;
+  sessionName?: string;
+  provider?: 'claude-code' | 'claude' | 'openai';
+  model?: string;
+}): Promise<boolean> {
   if (!aiService) return false;
   await aiService.sendPrompt(options);
   return true;

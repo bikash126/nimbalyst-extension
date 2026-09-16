@@ -22,6 +22,15 @@ const STORAGE_KEY_SCRIPT = 'postCreateScript';
 const STORAGE_KEY_PORT_VARS = 'portEnvVars';
 const STORAGE_KEY_BASE_BRANCHES = 'baseBranches';
 const STORAGE_KEY_WORKTREE_BASE = 'worktreeBase';
+const STORAGE_KEY_AGENT_PROVIDER = 'agentProvider';
+
+type AgentProvider = 'claude-code' | 'claude' | 'openai';
+
+const AGENT_PROVIDER_OPTIONS: { value: AgentProvider; label: string }[] = [
+  { value: 'claude-code', label: 'Claude Code (default)' },
+  { value: 'claude', label: 'Claude' },
+  { value: 'openai', label: 'Codex / OpenAI' },
+];
 
 const PORT_RANGE_MIN = 20000;
 const PORT_RANGE_MAX = 59000;
@@ -110,6 +119,7 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [repos, setRepos] = useState<RepoStatus[]>([]);
   const [worktreeBase, setWorktreeBase] = useState('');
+  const [agentProvider, setAgentProvider] = useState<AgentProvider>('claude-code');
   const [browseError, setBrowseError] = useState<string | null>(null);
   const [envFilesText, setEnvFilesText] = useState('');
   const [symlinksEnabled, setSymlinksEnabled] = useState(false);
@@ -146,6 +156,7 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
     })();
 
     setWorktreeBase(host.storage.get<string>(STORAGE_KEY_WORKTREE_BASE) ?? `${host.workspacePath}/.worktrees`);
+    setAgentProvider(host.storage.get<AgentProvider>(STORAGE_KEY_AGENT_PROVIDER) ?? 'claude-code');
     setEnvFilesText(host.storage.get<string>(STORAGE_KEY_ENV_FILES) ?? '.env');
     setSymlinkFoldersText(host.storage.get<string>(STORAGE_KEY_SYMLINK_FOLDERS) ?? 'node_modules');
     setSymlinksEnabled(host.storage.get<boolean>(STORAGE_KEY_SYMLINKS_ENABLED) ?? false);
@@ -307,6 +318,7 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
     const baseBranches = Object.fromEntries(repos.map((r) => [r.name, r.baseBranch]));
     await host.storage.set(STORAGE_KEY_BASE_BRANCHES, baseBranches);
     await host.storage.set(STORAGE_KEY_WORKTREE_BASE, worktreeBase);
+    await host.storage.set(STORAGE_KEY_AGENT_PROVIDER, agentProvider);
 
     const taskRoot = `${worktreeBase}/${slugToUse}`;
     const usedPorts = new Set<number>();
@@ -335,7 +347,7 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
         descriptionToUse,
       ].join('\n');
 
-      const started = await sendSessionPrompt({ prompt, sessionName: nameToUse });
+      const started = await sendSessionPrompt({ prompt, sessionName: nameToUse, provider: agentProvider });
       if (!started) {
         setLoadError('Worktrees are ready, but the AI session API is unavailable; no session was started.');
       }
@@ -450,6 +462,21 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
         <small className="twl-muted">
           Worktrees will be saved at: {worktreeBase || '(set a folder above)'}/{taskName ? slugify(taskName) : '<task-slug>'}/&lt;repo-name&gt;
         </small>
+      </label>
+
+      <label className="twl-field">
+        <span className="twl-field-label">Coding agent</span>
+        <select
+          className="twl-select"
+          value={agentProvider}
+          onChange={(e) => setAgentProvider(e.target.value as AgentProvider)}
+          disabled={isRunning}
+        >
+          {AGENT_PROVIDER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <small className="twl-muted">Which agent runs the started session — uses the app-wide default model for that provider.</small>
       </label>
 
       <div className="twl-field">
