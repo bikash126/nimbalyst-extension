@@ -1,0 +1,24 @@
+{
+  "id": "com.ebpearls.task-worktree-launcher",
+  "name": "Task Worktree Launcher",
+  "version": "1.0.0",
+  "description": "Create a git worktree per sibling repo for a task, copy ignored files, symlink shared folders, run a setup script, and start an agent session in each.",
+  "main": "dist/index.js",
+  "styles": "dist/index.css",
+  "apiVersion": "1.0.0",
+  "permissions": {
+    "filesystem": true,
+    "ai": true
+  },
+  "contributions": {
+    "panels": [
+      {
+        "id": "taskWorktreeLauncher",
+        "title": "Task Worktrees",
+        "icon": "call_split",
+        "placement": "fullscreen",
+        "aiSupported": true
+      }
+    ]
+  }
+}
