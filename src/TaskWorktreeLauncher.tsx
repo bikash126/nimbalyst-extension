@@ -336,11 +336,12 @@ export function TaskWorktreeLauncher({ host }: PanelHostProps) {
         `Your working directory for this task is ${taskRoot}. cd there first, then work from that directory only.`,
         `It contains one subfolder per repo worktree: ${succeededRepoNames.join(', ')}.`,
         '',
-        'Before starting the task, create a tracker item for it and link it to this session and worktree:',
-        `1. Call tracker_create with type: "task", title: ${JSON.stringify(nameToUse)}, description: ${JSON.stringify(descriptionToUse)}, status: "in-progress", linkSession: true.`,
+        'Before doing any coding, create and verify the tracker item for this task:',
+        `1. Call tracker_create with type: "task", title: ${JSON.stringify(nameToUse)}, description: ${JSON.stringify(descriptionToUse)}, status: "in-progress", linkSession: true. The item must be linked to this session.`,
+        '2. Confirm the created item is in the in-progress status and that the session link was recorded, then continue with the task.',
         taskRootRelative
-          ? `2. Call tracker_link_file with filePath: ${JSON.stringify(taskRootRelative)} (the worktree root, relative to the workspace).`
-          : `2. The worktree root (${taskRoot}) is outside the workspace, so skip tracker_link_file — it only accepts workspace-relative paths.`,
+          ? `3. Call tracker_link_file with filePath: ${JSON.stringify(taskRootRelative)} (the worktree root, relative to the workspace).`
+          : `3. The worktree root (${taskRoot}) is outside the workspace, so skip tracker_link_file — it only accepts workspace-relative paths.`,
         '',
         `Task: ${nameToUse}`,
         '',
